@@ -1,6 +1,6 @@
 public class Zeme {
 	private int width = Platno.getSirkaZemeImg();
-	private int x, y; // Y SE NEMÌNÍ!
+	private int x, y; // Y SE NEMENI!
 	private int krok = 4;
 	private boolean elev = false;
 	public int indexZeme;

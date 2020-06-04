@@ -1,4 +1,6 @@
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -11,14 +13,14 @@ import javax.swing.JPanel;
 public class Platno extends JPanel {
 
 	private static final long serialVersionUID = -4476094085092247106L;
-	// AI VŠEOBECNÉ 
-	static Image pozadi, zem, walk1, walk2, jump, duck1, duck2, sud, flaska; // 56X56, skrèení 56X33
+	// AI VSEOBECNE 
+	public static Image pozadi, zem, walk1, walk2, jump, duck1, duck2, sud, flaska; 
 	private int kroky = 0;
-	public static int width = 1024; // statika kvùli pøístupu z ostatních tøíd, napø. IntroPlatno
+	public static int width = 1024; // statika kvuli pristupu z ostatnich trid, napr. IntroPlatno
 	public static int height = 683; // _||_
 	private int urovenZeme = 50;
-	private int elevation = urovenZeme; // Slouží pro konstruktor zemì po zvýšení
-	// AI OHLEDNÌ ZEMÌ
+	private int elevation = urovenZeme; // Slouzi pro konstruktor zeme po zvyseni
+	// AI OHLEDNE ZEME
 	private Zeme[] poleZ = new Zeme[(width/sirkaZemeImg) + 2];
 	private boolean elevNext = false;
 	private int pocetSchodu = 0;
@@ -26,23 +28,24 @@ public class Platno extends JPanel {
 	private static int sirkaZemeImg = 100;
 	private int posunZemeDefault = -sirkaZemeImg;
 	private int posunZeme = posunZemeDefault;
-	// AI K POSTAVÌ
+	// AI K POSTAVE
 	private Postava character = new Postava();
 	private int posledniPosun = 0;
-	// AI K PØEKÁŽKÁM
+	private static boolean konecSkoku = false;
+	// AI K PREKAZKAM
 	private Prekazka[] poleSud = new Prekazka[Level.sudy.length];
 	private Prekazka[] poleFlasek = new Prekazka[Level.flasky.length];
-	//TODO DALŠÍ AI
+
 	
 	public Platno() {
-		// VYTVOØENÍ ZEMÌ
+		// VYTVORENI ZEME
 		for(int i = 0; i < poleZ.length; i++) { 
 			poleZ[i] = new Zeme(i * sirkaZemeImg, height - elevation);
 		}
-		// VYTVOØENÍ PØEKÁŽEK
+		// VYTVORENI PREKAZEK
 		for(int i = 0; i < poleSud.length; i++) {
 			poleSud[i] = new Prekazka(Level.sudy[i], height);
-			poleSud[i].setY(poleSud[i].getY() - poleSud[i].getHeight()); // Øádek navíc, protože to kvùli zapouzdøení v koknstruktoru nešlo
+			poleSud[i].setY(poleSud[i].getY() - poleSud[i].getHeight()); // Radek navic, protoze to kvuli zapouzdreni v koknstruktoru neslo
 		}
 		for(int i = 0; i < poleFlasek.length; i++) {
 			poleFlasek[i] = new Prekazka(Level.flasky[i], height, true);
@@ -63,19 +66,15 @@ public class Platno extends JPanel {
 		g2.setRenderingHint(
 				RenderingHints.KEY_TEXT_ANTIALIASING,
 				RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		// INICIALIZACE OBRÁZKÙ A OSTATNÍCH INSTANCÍ
-		pozadi = Toolkit.getDefaultToolkit().getImage("bg1.jpg");
-		zem = Toolkit.getDefaultToolkit().getImage("gnd.png");
-		walk1 = Toolkit.getDefaultToolkit().getImage("walk1.png");
-		walk2 = Toolkit.getDefaultToolkit().getImage("walk2.png");
-		jump = Toolkit.getDefaultToolkit().getImage("jump.png");
-		duck1 = Toolkit.getDefaultToolkit().getImage("duck1.png");
-		duck2 = Toolkit.getDefaultToolkit().getImage("duck2.png");
-		sud = Toolkit.getDefaultToolkit().getImage("sud.png");
-		flaska = Toolkit.getDefaultToolkit().getImage("flaska.png");
-		// POZADÍ
+		// INICIALIZACE OBRAZKU A OSTATNICH INSTANCI JE VE TRIDE Hra
+		// POZADI
 		g2.drawImage(pozadi, 0, 0, null);
-		// ZEMÌ
+		if(Hra.isPaused() == true && Hra.levelComplete == false) {
+			g2.setFont(new Font("TimesRoman", Font.PLAIN, 75));
+			g2.setColor(Color.BLACK);
+			g2.drawString("PAUZA", width / 2 - 100, height / 2);
+		}
+		// ZEME
 		for(Zeme Z : poleZ) {
 			g2.drawImage(zem, Z.getX(), Z.getY(), null);
 		}
@@ -89,33 +88,22 @@ public class Platno extends JPanel {
 		for(Zeme z : poleZ) {
 			if(z.isElev()) {
 				if(zemeKolize(character.getX(), character.getX() + character.getWidth(), z.getX()) == true) {
-					if(character.getY() + character.getHeight() > z.getY()) Hra.pokracuj = false; //TODO -> PODMÍNKA PRO KONEC HRY
+					if(character.getY() + character.getHeight() > z.getY()) {
+						Hra.pokracuj = false;
+						Hra.levelComplete = true; 
+					}
 					urovenZeme += Level.vysky[posledniPosun];
 					z.setElev(false);
 					character.posunPriSkoku = Level.vysky[posledniPosun];
-					character.setyPos(character.getyPos() - character.posunPriSkoku); //?
+					character.setyPos(character.getyPos() - character.posunPriSkoku); 
 					if(posledniPosun < Level.vysky.length) posledniPosun++;
 				}
 			}
 		}
-			// 2. POKUS
-		/*for(int i = -posunZeme + posunZemeDefault; i < width; i += sirkaZemeImg) { 
-			g2.drawImage(zem, i, height - urovenZeme, null);
-		}
-		if(kroky == Level.schody[pocetSchodu]) {
-			urovenZeme += Level.vysky[pocetSchodu];
-			if(pocetSchoduMax > pocetSchodu)pocetSchodu++;
-		}
-		*/
-			// 1. POKUS
-		/*for(int i = -posunZeme + posunZemeDefault; i < width; i += sirkaZemeImg) {
-			g2.drawImage(zem, i, height - urovenZeme, null);
-		}*/
 		posunZeme += 2; 
 		if(posunZeme >= 0) posunZeme = posunZemeDefault;
 		// POSTAVA
 		int x = character.getX();
-		// int y = height - urovenZeme - character.getHeight() - character.getyPos();
 		character.setY(height - urovenZeme - character.getHeight() - character.getyPos());
 		int duckY = height - urovenZeme - character.getDuckHeight();
 		switch(Postava.getStav()) {
@@ -132,14 +120,22 @@ public class Platno extends JPanel {
 				}
 				break;
 			case 1:
-				character.setyPos(character.getyPos() + Postava.jumpArray[character.fazeSkoku]); // inkrementace yPos pro normální pøípad
-				g2.drawImage(jump, x, character.getY(), null);
-				character.fazeSkoku++;
-				if(character.fazeSkoku == 73) { // SKOK DOKONÈEN
+				if(Platno.height - (character.getY() + character.getHeight() + Postava.jumpArray[character.fazeSkoku]) < urovenZeme && character.posunPriSkoku > 0) {
+					konecSkoku = true;
+					character.fazeSkoku = 73;
+				}
+				if(konecSkoku == false) {
+					character.setyPos(character.getyPos() + Postava.jumpArray[character.fazeSkoku]); // inkrementace yPos pro normalni pripad
+					g2.drawImage(jump, x, character.getY(), null);
+					character.fazeSkoku++;
+				}
+				if(character.fazeSkoku == 73) { // SKOK DOKONCEN
 					character.fazeSkoku = 0;
 					character.setyPos(0);
 					Postava.setStav(0);
 					character.posunPriSkoku = 0;
+					g2.drawImage(jump, x, character.getY(), null); 
+					konecSkoku = false;
 				}
 				break;
 			case 2:
@@ -153,9 +149,7 @@ public class Platno extends JPanel {
 				}
 				break;
 		}
-		g2.drawString(Integer.toString(character.getY()), 500, 500);
-		g2.drawString(Integer.toString(character.posunPriSkoku), 500, 400);
-		// PØEKÁŽKA/Y
+		// PREKAZKY
 			// SUDY
 		for(Prekazka p : poleSud) {
 			if(kroky == p.getKde()) {
@@ -166,11 +160,14 @@ public class Platno extends JPanel {
 			if(p.isAktivni()) {
 				g2.drawImage(sud, p.getX(), p.getY(), null);
 				p.update();
-				if(kolize(character.getX(), character.getY(), character.getWidth(), character.getHeight(), p.getX(), p.getY(), p.getWidth(), p.getHeight()) == true) Hra.pokracuj = false;
-				if(p.getX() < 0 - p.getWidth()) p = null;
+				if(kolize(character.getX(), character.getY(), character.getWidth(), character.getHeight(), p.getX(), p.getY(), p.getWidth(), p.getHeight()) == true) {
+					Hra.pokracuj = false;
+					Hra.levelComplete = true;
+				}
+				if(p.getX() < 0 - p.getWidth()) p.setAktivni(false);
 			}			
 		}
-			// FLAŠKY
+			// FLASKY
 		for(Prekazka p : poleFlasek) {
 			if(kroky == p.getKde()) {
 				p.setX(width);
@@ -182,11 +179,13 @@ public class Platno extends JPanel {
 				g2.drawImage(flaska, p.getX(), p.getY(), null);
 				g2.setTransform(AffineTransform.getScaleInstance(1, 1));//
 				p.update();
-				if(kolize(character.getX(), character.getY(), character.getWidth(), character.getHeight(), p.getX(), p.getY(), p.getWidth(), p.getHeight()) == true) Hra.pokracuj = false;
-				if(p.getX() < 0 - p.getWidth()) p = null;
+				if(kolize(character.getX(), character.getY(), character.getWidth(), character.getHeight(), p.getX(), p.getY(), p.getWidth(), p.getHeight()) == true) {
+					Hra.pokracuj = false;
+					Hra.levelComplete = true;
+				}
+				if(p.getX() < 0 - p.getWidth()) p.setAktivni(false);
 			}
 		}
-		//TODO další
 		// UPDATE 
 		kroky++;
 		for(int i = 0; i < poleZ.length; i++) {
@@ -199,15 +198,57 @@ public class Platno extends JPanel {
 				}
 			}
 		}
-		if(true); // 
+		// TEST KONCE LEVELU
+		if(kroky > Level.delka) {
+			boolean pom = true;
+			for(Prekazka p : poleSud) {
+				if(p.isAktivni()) pom = false;
+			}
+			for(Prekazka p : poleFlasek) {
+				if(p.isAktivni()) pom = false;
+			}
+			if(pom == true) {
+				Hra.levelComplete = true;
+				if(Level.pom == 5) { 
+					Hra.gameComplete = true;
+					Hra.pokracuj = false;
+				}
+			}
+		}
+	}
+	
+	public static void zlejsek() {
+		pozadi = Toolkit.getDefaultToolkit().getImage("bg1.jpg");
+		zem = Toolkit.getDefaultToolkit().getImage("gnd.png");
+		walk1 = Toolkit.getDefaultToolkit().getImage("walk1.png");
+		walk2 = Toolkit.getDefaultToolkit().getImage("walk2.png");
+		jump = Toolkit.getDefaultToolkit().getImage("jump.png");
+		duck1 = Toolkit.getDefaultToolkit().getImage("duck1.png");
+		duck2 = Toolkit.getDefaultToolkit().getImage("duck2.png");
+		sud = Toolkit.getDefaultToolkit().getImage("sud.png");
+		flaska = Toolkit.getDefaultToolkit().getImage("flaska.png");
+	}
+	public static void brko() {
+		pozadi = Toolkit.getDefaultToolkit().getImage("bg1.jpg");
+		zem = Toolkit.getDefaultToolkit().getImage("gnd.png");
+		walk1 = Toolkit.getDefaultToolkit().getImage("walk3.png");
+		walk2 = Toolkit.getDefaultToolkit().getImage("walk4.png");
+		jump = Toolkit.getDefaultToolkit().getImage("jump2.png");
+		duck1 = Toolkit.getDefaultToolkit().getImage("duck3.png");
+		duck2 = Toolkit.getDefaultToolkit().getImage("duck4.png");
+		sud = Toolkit.getDefaultToolkit().getImage("sud.png");
+		flaska = Toolkit.getDefaultToolkit().getImage("flaska.png");
 	}
 	
 	public static boolean kolize(int poX, int poY, int poW, int poH, int prX, int prY, int prW, int prH) { 
 		boolean b = false;
 		boolean xKol = false;
 		boolean yKol = false;
-		if(Postava.getStav() == 2) poY += Postava.walkDuckRozdil;
-		// TEST PRO X-OVÉ SOUØADNICE
+		if(Postava.getStav() == 2) {
+			poW = 100;
+			poY += Postava.walkDuckRozdil;
+		}
+		// TEST PRO X-OVE SOURADNICE
 		int poPom = poX + poW;
 		int prPom = prX + prW;
 		if(prX > poPom == false) {
@@ -215,7 +256,7 @@ public class Platno extends JPanel {
 				xKol = true;
 			}
 		}
-		// TEST PRO Y-OVÉ SOUØADNICE
+		// TEST PRO Y-OVE SOURADNICE
 		poPom = poY + poH;
 		prPom = prY + prH;
 		if(prY > poPom == false) {

@@ -4,17 +4,17 @@ public class Postava {
 	private static int stav = 0; 	// 0 walk, 1 jump, 2 duck
 	public static int[] jumpArray = {9,9,9,9,9,9,9,9,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3,3,3,3,3,3,3,3,3,
 			-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-6,-6,-6,-6,-6,-6,-6,-6,-6,-6,-6,-6,-6,-6,-6,-6,-6,-6,-6,-6,-9,-9,-9,-9,-9,-9,-8};
-	private int pom = 0; 	// 0-4 walk1; 5-9 walk2 (to samé pro duck)
-	private int x = 100; 	// Defaultní X
-	private int y; 			// defaultní Y
+	private int pom = 0; 	// 0-4 walk1; 5-9 walk2 (to same pro duck)
+	private int x = 100; 	// Defaultni X
+	private int y; 			// defaultni Y
 	private int yPos; 		// Pro skok
 	private int xPos; 		// Pro konec levelu
 	public int urovenZeme = 50;
 	public int fazeSkoku = 0;
 	public int posunPriSkoku = 0;
 	
-	public Postava() { // KDYŽ AKTUALIZUJI 2.-4. PARAMETR, AKTUALIZUJI VŠECHNY 3 NARÁZ!
-		this.width = 100;
+	public Postava() { 
+		this.width = 40; // sirka obrazku je 53, 40 je kompromisni sirka pro kolize
 		this.height = 100;
 		this.duckHeight = 70;
 		walkDuckRozdil = 30;
@@ -26,7 +26,7 @@ public class Postava {
 		if(pom >= 10) pom = 0;
 	}
 	
-	// GETTERY A SETTERY (NEVÌNOVAT POZORNOST)
+	// GETTERY A SETTERY (NEVENOVAT POZORNOST)
 	public int getPom() {
 		return pom;
 	}
@@ -62,6 +62,9 @@ public class Postava {
 	}
 	public void setHeight(int height) {
 		this.height = height;
+	}
+	public void setWidth(int width) {
+		this.width = width;
 	}
 	public int getDuckHeight() {
 		return duckHeight;
